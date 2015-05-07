@@ -9,6 +9,7 @@ time_taken_ideal = []
 for i in range(3, 10):
     st = time.time()
     os.system('./proc.py -i records/time'+str(i)+'.wav -q')
+    time_taken_ideal.append(time.time() - st)
 
 time_taken_butter = []
 for i in range(3, 10):
