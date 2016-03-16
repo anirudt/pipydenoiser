@@ -3,7 +3,10 @@ from scipy.fftpack import *
 import numpy as np
 import pdb
 import matplotlib.pyplot as plt
+# TODO: Import the auto-record module, and 
+# record the sounds with and without signal.
 
+# Helper Functions
 def graphify_plot(x, y, xlabel, ylabel, title, name, axis=None):
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
@@ -15,7 +18,7 @@ def graphify_plot(x, y, xlabel, ylabel, title, name, axis=None):
     if axis != None:
         plt.axis(axis)
 
-if __name__ == '__main__':
+def capture_bkgnd():
     sample_rate, bkgnd = wave.read('records/empty.wav')
     pdb.set_trace()
     freq_resp = fft(bkgnd)
@@ -25,4 +28,13 @@ if __name__ == '__main__':
     freq_axis = range(-length/2, length/2)
     graphify_plot(freq_axis, freq_resp, "frequency axis", \
             "amplitude", "Voice Freq Plot", "freq_resp")
+
+if __name__ == '__main__':
+    # TODO: Auto-capture background noise signal
+    # This signal could be used as our noise estimate
+    capture_bkgnd()
+
+    # TODO: Auto-capture required signal
+
+    # TODO: Perform necessary processing.
     pdb.set_trace()
