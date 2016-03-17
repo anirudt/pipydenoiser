@@ -19,15 +19,15 @@ def graphify_plot(x, y, xlabel, ylabel, title, name, axis=None):
         plt.axis(axis)
 
 def capture_bkgnd():
-    sample_rate, bkgnd = wave.read('records/empty.wav')
-    pdb.set_trace()
+    sample_rate, bkgnd = wave.read('records/version1.wav')
+    #pdb.set_trace()
     freq_resp = fft(bkgnd)
     freq_resp = np.fft.fftshift(freq_resp)
     length = len(freq_resp)
     print "Length of the response is ", length
     freq_axis = range(-length/2, length/2)
-    graphify_plot(freq_axis, freq_resp, "frequency axis", \
-            "amplitude", "Voice Freq Plot", "freq_resp")
+    graphify_plot(freq_axis, abs(freq_resp), "frequency axis", \
+            "amplitude", "Voice Freq Plot", "freq_resp_signal")
 
 if __name__ == '__main__':
     # TODO: Auto-capture background noise signal
@@ -37,4 +37,4 @@ if __name__ == '__main__':
     # TODO: Auto-capture required signal
 
     # TODO: Perform necessary processing.
-    pdb.set_trace()
+    #pdb.set_trace()
