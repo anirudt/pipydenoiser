@@ -8,6 +8,19 @@ import wave
 # TODO: Import the auto-record module, and 
 # record the sounds with and without signal.
 
+# IDEAL FILTER GETTER
+def load_ideal_filter(opt, N):
+    if opt == '1':
+        for i in range(N):
+            if i >= N//2-300 && i <= N//2-15:
+                H.append(1)
+            if i >= N//2+15 && i <= N/2+300:
+                H.append(1)
+            else:
+                H.append(0)
+        return H
+
+
 # Getter Function
 def get_params():
     """ Returns parameters of the audio file 
@@ -57,6 +70,17 @@ def capture_bkgnd():
     graphify_plot(freq_axis, abs(freq_resp), "frequency axis", \
             "amplitude", "Voice Freq Plot", "freq_resp_signal")
 
+    Y = filter(freq_resp, '1')
+
+def filter(X, s):
+    # Sample first half:
+    H = load_ideal_filter(s)
+    Y = [H[i]*X[i] for i in range(len(X))]
+
+    # Assuming that it is fftshifted initially.
+    Y = np.fft.ifftshift(Y)
+    y = np.ifft(Y)
+    return y
 
 def vol_add():
     f = AudioSegment.from_wav('records/myvoice.wav')
