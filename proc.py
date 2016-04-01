@@ -18,7 +18,15 @@ def load_ideal_filter(opt, N):
                 H.append(1)
             else:
                 H.append(0)
-        return H
+    if opt == '2':
+        for i in range(N):
+            if i >= N//2-1000 && i <= N//2-5:
+                H.append(1)
+            if i >= N//2+5 && i <= N/2+1000:
+                H.append(1)
+            else:
+                H.append(0)
+    return H
 
 
 # Getter Function
