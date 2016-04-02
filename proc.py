@@ -28,6 +28,20 @@ def load_ideal_filter(opt, N):
                 H.append(0)
     return H
 
+def get_SNR(X, Y):
+    """ 
+    Assuming that the output signal is pure signal, 
+    we compute the SNR, also knowing that the input
+    signal has both the pure signal and noise. We also assume
+    that the signal and the noise are uncorrelated, hence:
+    Input Power = norm(X)^2 / N;
+    Output Power = norm(Y)^2 / N;
+    """
+    X = np.array(X)
+    Y = np.array(Y)
+    Px = sum(abs(X)*abs(X))
+    Py = sum(abs(Y)*abs(Y))
+    return 20.0*math.log(Py/Px)
 
 # Getter Function
 def get_params():
