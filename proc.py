@@ -9,24 +9,22 @@ import cmath, math
 
 #################################################################################################
 # IDEAL FILTER GETTER
-def load_ideal_filter(opt, N):
+def load_ideal_filter(opt, N, Fs):
     H = []
     if opt == '1':
-        w_lc = 15
-        w_hc = 300
+        w_lc = 15*N/Fs*1.0
+        w_hc = 300*N/Fs*1.0
     if opt == '2':
-        w_lc = 5
-        w_hc = 1000
+        w_lc = 5*N/Fs*1.0
+        w_hc = 1000*N/Fs*1.0
     for i in range(N):
         if i > (N//2-w_hc) and i < (N//2-w_lc):
             H.append(1)
-            continue
-        if i > (N//2+w_lc) and i < (N//2+w_hc):
+        elif i > (N//2+w_lc) and i < (N//2+w_hc):
             H.append(1)
-            continue
         else:
             H.append(0)
-    freq_axis = range(-N//2, N//2)
+    freq_axis = list(np.arange(-Fs/2,Fs/2,Fs*1.0/N))
     graphify_plot(freq_axis, H, "frequency axis", \
             "amplitude", "Filter Plot", "filt")
     return H
@@ -87,9 +85,9 @@ def graphify_stem(x, y, xlabel, ylabel, title, name, axis=None):
 
 #################################################################################################
 # Core Functionality
-def filter(X, s):
+def filter(X, s, Fs):
     # Sample first half:
-    H = load_ideal_filter(s, len(X))
+    H = load_ideal_filter(s, len(X), Fs)
     Y = [H[i]*X[i] for i in range(len(X))]
     # pdb.set_trace()
 
@@ -116,7 +114,7 @@ def capture_bkgnd():
     graphify_plot(freq_axis, np.abs(freq_resp), "frequency axis", \
             "amplitude", "Voice Freq Plot", "voice")
 
-    y, Y = filter(freq_resp, '2')
+    y, Y = filter(freq_resp, '2', sample_rate)
     print "SNR is ", get_SNR(freq_resp, Y)
     graphify_plot(freq_axis, np.abs(Y), "frequency axis", \
             "amplitude", "Filtered Voice Freq Plot", "filt_voice_freq")
