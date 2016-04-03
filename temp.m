@@ -1,4 +1,4 @@
-[x, Fs]  = audioread('myvoice.wav'); 
+[x, Fs]  = audioread('records/myvoice.wav'); 
 sound(x, Fs);
 % t = linspace(0,1,1e3);
 % x = cos(2*pi*250*t)+randn(size(t));
@@ -16,12 +16,13 @@ end
 for i= length(x)-ceil((5*length(x)/Fs)):1:length(x)
     xdft(i,:)=[0 0];
 end
+plot(freq, abs(xdft));
 % freq = 1:1:length(x);
 % [~,maxindex] = abs(xdft);
 % plot(freq,abs(xdft));
 y = ifft(xdft);
 sound(real(y), Fs);
-filename = 'voice5to1000.wav';
+filename = 'records/voice5to1000.wav';
 audiowrite(filename,real(y),Fs);
 % y = ifft(xdft);
 % figure, plot()
