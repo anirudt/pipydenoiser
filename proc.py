@@ -12,25 +12,20 @@ import cmath, math
 def load_ideal_filter(opt, N):
     H = []
     if opt == '1':
-        for i in range(N):
-            if i > (N//2-300) and i < (N//2-15):
-                H.append(1)
-                continue
-            if i > (N//2+15) and i < (N//2+300):
-                H.append(1)
-                continue
-            else:
-                H.append(0)
+        w_lc = 15
+        w_hc = 300
     if opt == '2':
-        for i in range(N):
-            if i >= N//2-1000 and i <= N//2-5:
-                H.append(1)
-                continue
-            if i >= N//2+5 and i <= N//2+1000:
-                H.append(1)
-                continue
-            else:
-                H.append(0)
+        w_lc = 5
+        w_hc = 1000
+    for i in range(N):
+        if i > (N//2-w_hc) and i < (N//2-w_lc):
+            H.append(1)
+            continue
+        if i > (N//2+w_lc) and i < (N//2+w_hc):
+            H.append(1)
+            continue
+        else:
+            H.append(0)
     freq_axis = range(-N//2, N//2)
     graphify_plot(freq_axis, H, "frequency axis", \
             "amplitude", "Filter Plot", "filt")
@@ -134,7 +129,7 @@ def capture_bkgnd():
     # Reshaping the matrix
     out = np.array(list(real_y)+list(real_y), dtype = np.int16)
     out = out.reshape((len(bkgnd), 2))
-    pdb.set_trace()
+    # pdb.set_trace()
     scipy.io.wavfile.write('records/proc_myvoice.wav', sample_rate, out)
 
 # TODO: Enhance this module.
