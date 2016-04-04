@@ -17,4 +17,4 @@ Python audio filtering module.
 * Getter function for params
 * Normalise the x axis into frequency, and try to locate the voice-frequency component approximately.
 * Pass a normal LPF around it and try, get results
-
+* Adding OptParsing for convenience
