@@ -6,6 +6,16 @@ import matplotlib.pyplot as plt
 from pydub import AudioSegment
 import wave
 import cmath, math
+import optparse
+
+desc = "This is an audio processing tool, to eliminate background noise present in audio clips."
+
+def parseCmd():
+    p = optparse.OptionParser(description=desc)
+    p.add_option('-q', '--quiet', dest='qu', action='store_true', default = False, help='Do not print graphs')
+    p.add_option('-v', '--verbose', dest='ve', action='store_true', default = False, help='Print graphs')
+    (opts, args) = p.parse_args()
+    return opts
 
 #################################################################################################
 # IDEAL FILTER GETTER
@@ -31,7 +41,8 @@ def load_ideal_filter(opt, N, Fs):
         else:
             H.append(0)
     freq_axis = list(np.arange(-Fs/2,Fs/2,Fs*1.0/N))
-    graphify_plot(freq_axis, H, "frequency axis", \
+    if opts.ve:
+        graphify_plot(freq_axis, H, "frequency axis", \
             "amplitude", "Filter Plot", "filt")
     return H
 
@@ -103,7 +114,7 @@ def filter(X, s, Fs):
     y = np.fft.ifft(Yi)
     return y, Y
 
-def capture_bkgnd():
+def capture_bkgnd(opts):
     sample_rate, bkgnd = scipy.io.wavfile.read('records/myvoice.wav')
 
     # Takes the average of both channels
@@ -118,19 +129,21 @@ def capture_bkgnd():
     #pdb.set_trace()
     freq_resp = (np.fft.fftshift(freq_resp))
     freq_axis = (np.arange(-Fs/2,Fs/2,Fs*1.0/len(bkgnd)))
-    graphify_plot(freq_axis, np.abs(freq_resp), "frequency axis", \
-            "amplitude", "Voice Freq Plot", "voice")
 
     y, Y = filter(freq_resp, '2', sample_rate)
     print "SNR is ", get_SNR(freq_resp, Y)
-    graphify_plot(freq_axis, np.abs(Y), "frequency axis", \
-            "amplitude", "Filtered Voice Freq Plot", "filt_voice_freq")
     real_y = np.array([y[i].real for i in range(len(y))], dtype=np.int16)
 
     # Getting requisite plots.
-    graphify_plot(t, real_y, "Time axis", \
+    if opts.ve:
+        graphify_plot(freq_axis, np.abs(freq_resp), "frequency axis", \
+            "amplitude", "Voice Freq Plot", "voice")
+
+        graphify_plot(freq_axis, np.abs(Y), "frequency axis", \
+            "amplitude", "Filtered Voice Freq Plot", "filt_voice_freq")
+        graphify_plot(t, real_y, "Time axis", \
             "amplitude", "Filtered Voice Time Plot", "filt_voice")
-    graphify_plot(t, bkgnd, "Time axis", \
+        graphify_plot(t, bkgnd, "Time axis", \
             "amplitude", "Original Voice Time Plot", "my_voice")
 
     # Writing the filtered output to a file
@@ -144,7 +157,8 @@ def vol_add():
 
 if __name__ == '__main__':
     # TODO: Auto-capture background noise signal
+    opts = parseCmd()
     print get_params()
-    capture_bkgnd()
+    capture_bkgnd(opts)
     # load_ideal_filter('1', 1000)
     # TODO: Auto-capture required signal
