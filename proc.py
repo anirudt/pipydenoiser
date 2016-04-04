@@ -1,5 +1,5 @@
 import scipy.io.wavfile
-from scipy.fftpack import *
+#from scipy.fftpack import *
 import numpy as np
 import pdb
 import matplotlib.pyplot as plt
@@ -12,15 +12,21 @@ import cmath, math
 def load_ideal_filter(opt, N, Fs):
     H = []
     if opt == '1':
+        # CONSTRICTED LPF
         w_lc = 15*N/Fs*1.0
         w_hc = 300*N/Fs*1.0
     if opt == '2':
+        # BROADER LPF
         w_lc = 5*N/Fs*1.0
         w_hc = 1000*N/Fs*1.0
+    if opt == '3':
+        # ALL PASS FILTER
+        w_lc = 0.0
+        w_hc = N*1.0
     for i in range(N):
-        if i > (N//2-w_hc) and i < (N//2-w_lc):
+        if i >= (N//2-w_hc) and i <= (N//2-w_lc):
             H.append(1)
-        elif i > (N//2+w_lc) and i < (N//2+w_hc):
+        elif i >= (N//2+w_lc) and i <= (N//2+w_hc):
             H.append(1)
         else:
             H.append(0)
@@ -37,14 +43,15 @@ def get_SNR(X, Y):
     we compute the SNR, also knowing that the input
     signal has both the pure signal and noise. We also assume
     that the signal and the noise are uncorrelated, hence:
-    Input Power = norm(X)^2 / N;
-    Output Power = norm(Y)^2 / N;
+    Input Power = Noise + Signal Power = norm(X)^2 / N;
+    Output Power = Signal Power = norm(Y)^2 / N;
+    SNR = 10 log (Signal)
     """
     X = np.array(X)
     Y = np.array(Y)
     Px = sum(abs(X)*abs(X))
     Py = sum(abs(Y)*abs(Y))
-    return 20.0*math.log(Py/Px)
+    return 10.0*math.log(Py/(Px-Py))
 
 def get_params():
     """ 
@@ -93,24 +100,24 @@ def filter(X, s, Fs):
 
     # Assuming that it is fftshifted initially.
     Yi = np.fft.ifftshift(Y)
-    y = ifft(Yi)
+    y = np.fft.ifft(Yi)
     return y, Y
 
 def capture_bkgnd():
     sample_rate, bkgnd = scipy.io.wavfile.read('records/myvoice.wav')
 
     # Takes the average of both channels
-    bkgnd = np.mean(bkgnd, axis=1)
+    bkgnd = np.mean(bkgnd, axis=1, dtype=np.int16)
     t = range(len(bkgnd))
 
     a = get_params()
     Fs = a[-1]
     #pdb.set_trace()
-    freq_resp = fft(bkgnd)
-    freq_resp = list(np.fft.fftshift(freq_resp))
-    freq_axis = list(np.arange(-Fs/2,Fs/2,Fs*1.0/len(bkgnd)))
-    length = len(freq_resp)
-    print len(freq_axis), len(freq_resp)
+    N = len(bkgnd)
+    freq_resp = np.fft.fft(bkgnd)
+    #pdb.set_trace()
+    freq_resp = (np.fft.fftshift(freq_resp))
+    freq_axis = (np.arange(-Fs/2,Fs/2,Fs*1.0/len(bkgnd)))
     graphify_plot(freq_axis, np.abs(freq_resp), "frequency axis", \
             "amplitude", "Voice Freq Plot", "voice")
 
@@ -119,16 +126,15 @@ def capture_bkgnd():
     graphify_plot(freq_axis, np.abs(Y), "frequency axis", \
             "amplitude", "Filtered Voice Freq Plot", "filt_voice_freq")
     real_y = np.array([y[i].real for i in range(len(y))], dtype=np.int16)
+
+    # Getting requisite plots.
     graphify_plot(t, real_y, "Time axis", \
             "amplitude", "Filtered Voice Time Plot", "filt_voice")
+    graphify_plot(t, bkgnd, "Time axis", \
+            "amplitude", "Original Voice Time Plot", "my_voice")
 
-    #TODO: Plot the real value of y versus time, and write to a 
-    # wav file, and play it.
-    # Reshaping the matrix
-    out = np.array(list(real_y)+list(real_y), dtype = np.int16)
-    out = out.reshape((len(bkgnd), 2))
-    # pdb.set_trace()
-    scipy.io.wavfile.write('records/proc_myvoice.wav', sample_rate, out)
+    # Writing the filtered output to a file
+    scipy.io.wavfile.write('records/proc_myvoice.wav', sample_rate, real_y)
 
 # TODO: Enhance this module.
 def vol_add():
