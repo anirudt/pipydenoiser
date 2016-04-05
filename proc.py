@@ -167,8 +167,15 @@ def capture_bkgnd(opts):
 
 # TODO: Enhance this module.
 def vol_add(data, gain):
-     data_up = np.array([gain*data[i] for i in range(len(data))], dtype=np.int16)
-     return data_up
+    """
+    Returns a signal with gain as follows:
+    Gain = 20*log(gain).
+    where 
+    gain-> argument
+
+    """
+    data_up = np.array([gain*data[i] for i in range(len(data))], dtype=np.int16)
+    return data_up
 
 if __name__ == '__main__':
     # TODO: Auto-capture background noise signal
