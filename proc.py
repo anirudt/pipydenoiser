@@ -1,9 +1,7 @@
 import scipy.io.wavfile
-#from scipy.fftpack import *
 import numpy as np
 import pdb
 import matplotlib.pyplot as plt
-from pydub import AudioSegment
 import wave
 import cmath, math
 import optparse
@@ -112,13 +110,31 @@ def graphify_stem(x, y, xlabel, ylabel, title, name, axis=None):
 def filter(X, s, Fs):
     # Sample first half:
     H = load_ideal_filter(s, len(X), Fs)
+    H1 = combing(X, Fs, H)
+
+    num = sum([H[i]!=H1[i] for i in range(len(H))])
+    print "#Harmonics", num
+
     Y = [H[i]*X[i] for i in range(len(X))]
+    Y1 = [H1[i]*X[i] for i in range(len(X))]
     # pdb.set_trace()
 
     # Assuming that it is fftshifted initially.
     Yi = np.fft.ifftshift(Y)
     y = np.fft.ifft(Yi)
-    return y, Y
+
+    Yi = np.fft.ifftshift(Y1)
+    y1 = np.fft.ifft(Yi)
+    return y, Y, y1, Y1
+
+def combing(X, Fs, H):
+    avg = np.mean(abs(X))
+    alpha = 5
+    thresh = alpha*avg
+    print thresh
+    H = [H[i] if abs(X[i])<thresh else 0 for i in range(len(H))]
+    return H
+
 
 def capture_bkgnd(opts):
     if opts.inp:
@@ -131,15 +147,22 @@ def capture_bkgnd(opts):
 
     a = get_params(opts)
     Fs = a[-1]
-    #pdb.set_trace()
+
     N = len(bkgnd)
     freq_resp = np.fft.fft(bkgnd)
-    #pdb.set_trace()
+
     freq_resp = (np.fft.fftshift(freq_resp))
     freq_axis = (np.arange(-Fs/2,Fs/2,Fs*1.0/len(bkgnd)))
 
-    y, Y = filter(freq_resp, '2', sample_rate)
+    y, Y, y1, Y1 = filter(freq_resp, '2', sample_rate)
+
+    # COMBED OUTPUTs
+    real_y1 = np.array([b[i].real for i in range(len(b))], dtype=np.int16)
+    real_y1 = vol_add(real_y1, 5)
+
     print "SNR is ", get_SNR(freq_resp, Y)
+
+    # NORMAL OUTPUT
     real_y = np.array([y[i].real for i in range(len(y))], dtype=np.int16)
     data_up = vol_add(real_y, 5)
 
@@ -150,6 +173,10 @@ def capture_bkgnd(opts):
 
         graphify_plot(freq_axis, np.abs(Y), "frequency axis", \
             "amplitude", "Filtered Voice Freq Plot", "filt_voice_freq")
+        graphify_plot(freq_axis, np.abs(B), "frequency axis", \
+            "amplitude", "Filtered Voice Freq Plot Combed", "comb_filt_voice_freq")
+        graphify_plot(t, real_y1, "Time axis", \
+            "amplitude", "Filtered Voice Time Plot Combed", "comb_filt_voice")
         graphify_plot(t, real_y, "Time axis", \
             "amplitude", "Filtered Voice Time Plot", "filt_voice")
         graphify_plot(t, data_up, "Time axis", \
@@ -160,19 +187,19 @@ def capture_bkgnd(opts):
     # Writing the filtered output to a file
     if opts.out:
         scipy.io.wavfile.write(out, sample_rate, real_y)
-        scipy.io.wavfile.write(high+out, sample_rate, data_up)
+        scipy.io.wavfile.write('high'+out, sample_rate, data_up)
+        scipy.io.wavfile.write('comb'+out, sample_rate, real_y1)
     else:
         scipy.io.wavfile.write('records/proc_myvoice.wav', sample_rate, real_y)
         scipy.io.wavfile.write('records/proc_myvoice_high.wav', sample_rate, data_up)
+        scipy.io.wavfile.write('records/comb_proc_myvoice.wav', sample_rate, real_y1)
 
-# TODO: Enhance this module.
 def vol_add(data, gain):
     """
     Returns a signal with gain as follows:
     Gain = 20*log(gain).
     where 
     gain-> argument
-
     """
     data_up = np.array([gain*data[i] for i in range(len(data))], dtype=np.int16)
     return data_up
