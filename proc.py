@@ -14,6 +14,8 @@ def parseCmd():
     p = optparse.OptionParser(description=desc)
     p.add_option('-q', '--quiet', dest='qu', action='store_true', default = False, help='Do not print graphs')
     p.add_option('-v', '--verbose', dest='ve', action='store_true', default = False, help='Print graphs')
+    p.add_option('-i', '--input', dest='inp', default = '', help='File input')
+    p.add_option('-o', '--output', dest='out', default = '', help='File output')
     (opts, args) = p.parse_args()
     return opts
 
@@ -28,7 +30,7 @@ def load_ideal_filter(opt, N, Fs):
     if opt == '2':
         # BROADER LPF
         w_lc = 5*N/Fs*1.0
-        w_hc = 1000*N/Fs*1.0
+        w_hc = 2000*N/Fs*1.0
     if opt == '3':
         # ALL PASS FILTER
         w_lc = 0.0
@@ -64,14 +66,18 @@ def get_SNR(X, Y):
     Py = sum(abs(Y)*abs(Y))
     return 10.0*math.log(Py/(Px-Py))
 
-def get_params():
+def get_params(opts):
     """ 
     Returns parameters of the audio file 
     in the following order:
     [nchannels, sampwidth, framerate, nframes, comptype, compname, samplerate]
     """
-    f = wave.open('records/myvoice.wav', 'rb')
-    [Fs, g] = scipy.io.wavfile.read('records/myvoice.wav') 
+    if opts.inp:
+        f = wave.open(opts.inp, 'rb')
+        [Fs, g] = scipy.io.wavfile.read('records/myvoice.wav') 
+    else:
+        f = wave.open('records/myvoice.wav', 'rb')
+        [Fs, g] = scipy.io.wavfile.read('records/myvoice.wav') 
     list_p = list(f.getparams())
     print Fs
     list_p.append(Fs)
@@ -115,13 +121,15 @@ def filter(X, s, Fs):
     return y, Y
 
 def capture_bkgnd(opts):
-    sample_rate, bkgnd = scipy.io.wavfile.read('records/myvoice.wav')
-
+    if opts.inp:
+        sample_rate, bkgnd = scipy.io.wavfile.read(opts.inp)
+    else:
+        sample_rate, bkgnd = scipy.io.wavfile.read('records/myvoice.wav')
     # Takes the average of both channels
     bkgnd = np.mean(bkgnd, axis=1, dtype=np.int16)
     t = range(len(bkgnd))
 
-    a = get_params()
+    a = get_params(opts)
     Fs = a[-1]
     #pdb.set_trace()
     N = len(bkgnd)
@@ -133,6 +141,7 @@ def capture_bkgnd(opts):
     y, Y = filter(freq_resp, '2', sample_rate)
     print "SNR is ", get_SNR(freq_resp, Y)
     real_y = np.array([y[i].real for i in range(len(y))], dtype=np.int16)
+    data_up = vol_add(real_y, 5)
 
     # Getting requisite plots.
     if opts.ve:
@@ -143,22 +152,28 @@ def capture_bkgnd(opts):
             "amplitude", "Filtered Voice Freq Plot", "filt_voice_freq")
         graphify_plot(t, real_y, "Time axis", \
             "amplitude", "Filtered Voice Time Plot", "filt_voice")
+        graphify_plot(t, data_up, "Time axis", \
+            "amplitude", "Filtered Voice Time Plot", "filt_voice_high")
         graphify_plot(t, bkgnd, "Time axis", \
             "amplitude", "Original Voice Time Plot", "my_voice")
 
     # Writing the filtered output to a file
-    scipy.io.wavfile.write('records/proc_myvoice.wav', sample_rate, real_y)
+    if opts.out:
+        scipy.io.wavfile.write(out, sample_rate, real_y)
+        scipy.io.wavfile.write(high+out, sample_rate, data_up)
+    else:
+        scipy.io.wavfile.write('records/proc_myvoice.wav', sample_rate, real_y)
+        scipy.io.wavfile.write('records/proc_myvoice_high.wav', sample_rate, data_up)
 
 # TODO: Enhance this module.
-def vol_add():
-    f = AudioSegment.from_wav('records/myvoice.wav')
-    f1 = f + 10
-    f.export('records/hi_myvoice.wav', "wav")
+def vol_add(data, gain):
+     data_up = np.array([gain*data[i] for i in range(len(data))], dtype=np.int16)
+     return data_up
 
 if __name__ == '__main__':
     # TODO: Auto-capture background noise signal
     opts = parseCmd()
-    print get_params()
+    print get_params(opts)
     capture_bkgnd(opts)
     # load_ideal_filter('1', 1000)
     # TODO: Auto-capture required signal
