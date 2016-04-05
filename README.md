@@ -18,3 +18,4 @@ Python audio filtering module.
 * Get way for amplifying the audio, adding dB gain
 * Make a function for calculating SNR.
 * Adding OptParsing for convenience
+* Added Combing filter, for removing certain high power harmonics, using a naive thresholding method.
