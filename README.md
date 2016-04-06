@@ -5,6 +5,8 @@ Python audio filtering module.
 * Analyse the noise and search for harmonics
 * Study about standard Audio Pre-processing techniques.
 * Read clip frame by frame, formatting from ```wave``` module
+* Dumping / Loading the filter coeffs, for faster computation
+* Combing + ButterWorth.
 
 ## Capturing Audio from the Pi:
 * To record a clip, type in ```rec filename.wav```.
@@ -19,3 +21,4 @@ Python audio filtering module.
 * Make a function for calculating SNR.
 * Adding OptParsing for convenience
 * Added Combing filter, for removing certain high power harmonics, using a naive thresholding method.
+* Adding ButterWorth filter
