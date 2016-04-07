@@ -21,4 +21,4 @@ Python audio filtering module.
 * Make a function for calculating SNR.
 * Adding OptParsing for convenience
 * Added Combing filter, for removing certain high power harmonics, using a naive thresholding method.
-* Adding ButterWorth filter
+* Adding ButterWorth filter, working
