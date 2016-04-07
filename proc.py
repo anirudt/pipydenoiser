@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import wave
 import cmath, math
 import optparse
+from scipy.signal import butter, lfilter
+from scipy import signal
 
 desc = "This is an audio processing tool, to eliminate background noise present in audio clips."
 
@@ -14,6 +16,7 @@ def parseCmd():
     p.add_option('-v', '--verbose', dest='ve', action='store_true', default = False, help='Print graphs')
     p.add_option('-i', '--input', dest='inp', default = '', help='File input')
     p.add_option('-o', '--output', dest='out', default = '', help='File output')
+    p.add_option('-f', '--filter', dest='fil', default = '', help='Filter choice: b - butterworth')
     (opts, args) = p.parse_args()
     return opts
 
@@ -45,6 +48,38 @@ def load_ideal_filter(opt, N, Fs):
         graphify_plot(freq_axis, H, "frequency axis", \
             "amplitude", "Filter Plot", "filt")
     return H
+
+def butter_bandpass(lowcut, highcut, fs, order=3):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = butter(order, [low, high], btype='band')
+    
+    #print np.all(np.abs(np.roots(a))<1), (low, high, order), np.max(np.roots(a))
+    return b, a
+
+
+def butter_bandpass_filter(data, lowcut, highcut, fs, order=3):
+    b, a = butter_bandpass(lowcut, highcut, fs, order=order)
+    y = lfilter(b, a, data)
+    w, h = signal.freqz(b, a)
+    Y = np.fft.fftshift(np.fft.fft(y))
+    freq_axis = (np.arange(-fs/2,fs/2,fs*1.0/len(data)))
+    #plt.plot(freq_axis, abs(Y))
+    #plt.show()
+    #plt.plot(w, 20 * np.log10(abs(h)))
+    #plt.show()
+    return y
+
+def stable_filter_finder(Fs):
+    low = [5, 10, 15, 20]
+    high = [1000, 1200, 1500, 2000]
+    order = [1,3,5,7,9,11,13,15]
+    fs = Fs
+    for l in low:
+        for h in high:
+            for o in order:
+                butter_bandpass(l, h, Fs, o)
 
 #################################################################################################
 # Getter Functions
@@ -147,6 +182,12 @@ def capture_bkgnd(opts):
 
     a = get_params(opts)
     Fs = a[-1]
+
+    if opts.fil == 'b':
+        sig = np.array(butter_bandpass_filter(bkgnd, 10, 2000, sample_rate, 3), dtype=np.int16)
+        sig = vol_add(sig, 5)
+        scipy.io.wavfile.write('records/butterworth.wav', sample_rate, sig.real)
+        return
 
     N = len(bkgnd)
     freq_resp = np.fft.fft(bkgnd)
