@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import scipy.io.wavfile
 import numpy as np
 import pdb

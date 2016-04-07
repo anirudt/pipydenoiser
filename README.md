@@ -6,7 +6,8 @@ Python audio filtering module.
 * Study about standard Audio Pre-processing techniques.
 * Read clip frame by frame, formatting from ```wave``` module
 * Dumping / Loading the filter coeffs, for faster computation
-* Combing + ButterWorth.
+* Artificial Combing + ButterWorth.
+* Time Computation Graphs
 
 ## Capturing Audio from the Pi:
 * To record a clip, type in ```rec filename.wav```.
