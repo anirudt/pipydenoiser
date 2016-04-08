@@ -68,10 +68,11 @@ def butter_bandpass_filter(data, lowcut, highcut, fs, opts, order=3):
     w, h = signal.freqz(b, a)
     Y = np.fft.fftshift(np.fft.fft(y))
     freq_axis = (np.arange(-fs/2,fs/2,fs*1.0/len(data)))
-    plt.plot(w, 20 * np.log10(abs(h)))
-    plt.show()
-    plt.plot(freq_axis, abs(Y))
-    plt.show()
+    if opts.ve:
+        plt.plot(w, 20 * np.log10(abs(h)))
+        plt.show()
+        plt.plot(freq_axis, abs(Y))
+        plt.show()
     return y
 
 def stable_filter_finder(Fs):
