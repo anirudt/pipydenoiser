@@ -25,3 +25,6 @@ Audio Input to the Raspberry Pi, or in clips with low SNR and high amplitude low
 ## Brief Description
 * Human voice signals have a frequency range of 300 Hz to 3.4 kHz. To reduce the bandwidth further [to curtail the noise signals], we use a bandwidth of about 5 Hz to 2000 Hz. 
 * There are options to use an ideal filter, butterworth and artificial combing.
+  * Ideal Filter: To analyse the frequency response, and objectively keep/remove certain frequency components.
+  * Butterworth filter: To implement a practical realization of the above ideal filter.
+  * Artificial Combing: It was observed that the noise signal had several high power harmonics in the low frequency range. Thus, to eliminate them, a naive thresholding was applied, which enabled our signal to get enhanced.

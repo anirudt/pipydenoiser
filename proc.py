@@ -18,6 +18,7 @@ def parseCmd():
     p.add_option('-i', '--input', dest='inp', default = '', help='File input')
     p.add_option('-o', '--output', dest='out', default = '', help='File output')
     p.add_option('-f', '--filter', dest='fil', default = '', help='Filter choice: b - butterworth')
+    p.add_option('-c', '--comb', dest='com', action='store_true', default = False, help='Option for artificial combing, mainly for ButterWorth option')
     (opts, args) = p.parse_args()
     return opts
 
@@ -60,19 +61,28 @@ def butter_bandpass(lowcut, highcut, fs, order=3):
     return b, a
 
 
-def butter_bandpass_filter(data, lowcut, highcut, fs, order=3):
+def butter_bandpass_filter(data, lowcut, highcut, fs, opts, order=3):
     b, a = butter_bandpass(lowcut, highcut, fs, order=order)
     y = lfilter(b, a, data)
     w, h = signal.freqz(b, a)
     Y = np.fft.fftshift(np.fft.fft(y))
     freq_axis = (np.arange(-fs/2,fs/2,fs*1.0/len(data)))
-    #plt.plot(freq_axis, abs(Y))
-    #plt.show()
-    #plt.plot(w, 20 * np.log10(abs(h)))
-    #plt.show()
-    return y
+    plt.plot(freq_axis, abs(Y))
+    plt.show()
+    plt.plot(w, 20 * np.log10(abs(h)))
+    plt.show()
+
+    if opts.com:
+        Y = combing(data, fs, Y)
+        y = np.fft.ifftshift(np.fft.ifft(Y))
+        return y
+    else:
+        return y
 
 def stable_filter_finder(Fs):
+    """
+    Used to find the stable filter for our use.
+    """
     low = [5, 10, 15, 20]
     high = [1000, 1200, 1500, 2000]
     order = [1,3,5,7,9,11,13,15]
@@ -141,6 +151,7 @@ def graphify_stem(x, y, xlabel, ylabel, title, name, axis=None):
     if axis != None:
         plt.axis(axis)
 
+
 #################################################################################################
 # Core Functionality
 def filter(X, s, Fs):
@@ -185,8 +196,10 @@ def capture_bkgnd(opts):
     Fs = a[-1]
 
     if opts.fil == 'b':
-        sig = np.array(butter_bandpass_filter(bkgnd, 10, 2000, sample_rate, 3), dtype=np.int16)
+        sig = np.array(butter_bandpass_filter(bkgnd, 10, 2000, sample_rate, opts, 3), dtype=np.int16)
         sig = vol_add(sig, 5)
+        graphify_plot(t, sig, "Time axis", \
+            "amplitude", "Butterworth filtered voice", "but_voice")
         scipy.io.wavfile.write('records/butterworth.wav', sample_rate, sig.real)
         return
 
@@ -199,7 +212,7 @@ def capture_bkgnd(opts):
     y, Y, y1, Y1 = filter(freq_resp, '2', sample_rate)
 
     # COMBED OUTPUTs
-    real_y1 = np.array([b[i].real for i in range(len(b))], dtype=np.int16)
+    real_y1 = np.array([y1[i].real for i in range(len(y1))], dtype=np.int16)
     real_y1 = vol_add(real_y1, 5)
 
     print "SNR is ", get_SNR(freq_resp, Y)
@@ -215,7 +228,7 @@ def capture_bkgnd(opts):
 
         graphify_plot(freq_axis, np.abs(Y), "frequency axis", \
             "amplitude", "Filtered Voice Freq Plot", "filt_voice_freq")
-        graphify_plot(freq_axis, np.abs(B), "frequency axis", \
+        graphify_plot(freq_axis, np.abs(Y1), "frequency axis", \
             "amplitude", "Filtered Voice Freq Plot Combed", "comb_filt_voice_freq")
         graphify_plot(t, real_y1, "Time axis", \
             "amplitude", "Filtered Voice Time Plot Combed", "comb_filt_voice")
@@ -247,9 +260,6 @@ def vol_add(data, gain):
     return data_up
 
 if __name__ == '__main__':
-    # TODO: Auto-capture background noise signal
     opts = parseCmd()
     print get_params(opts)
     capture_bkgnd(opts)
-    # load_ideal_filter('1', 1000)
-    # TODO: Auto-capture required signal
