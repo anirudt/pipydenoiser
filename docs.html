@@ -76,24 +76,58 @@
 <a id="user-content-tool-usage" class="anchor" href="#tool-usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Tool Usage</h2>
 
 <ul>
-<li><p>To find out how to use the tool, use
-<code>$ ./proc.py -h</code> for help instructions</p></li>
-<li><p>Additionally, to provide an input file, 
-<code>$ ./proc.py -i inp_file.wav</code>
-[Currently, the tool supports only wav formats].</p></li>
+<li>
+<p>To find out how to use the tool, use</p>
+
+<p><code>$ ./proc.py -h</code> for help instructions</p>
+</li>
+<li>
+<p>Additionally, to provide an input file, </p>
+
+<p><code>$ ./proc.py -i inp_file.wav</code>
+[Currently, the tool supports only wav formats].</p>
+</li>
+<li>
+<p>Similarly, a <code>-o</code> is used to provide path to an output file.</p>
+
+<p><code>$ ./proc.py -o out_file.wav</code></p>
+</li>
+<li>
+<p>If you are working remotely without X-support, you can process the audio using the quiet mode as follows:</p>
+
+<p><code>$ ./proc.py -q</code></p>
+</li>
+<li>
+<p>Or, verbose mode for best visualisation! </p>
+
+<p><code>$ ./proc.py -v</code></p>
+</li>
+<li>
+<p>The ideal filter is the one enabled by default. If you wish to use an alternative Butterworth filter, we use the following argument:  </p>
+
+<p><code>$ ./proc.py -f b</code>.</p>
+</li>
+<li><p>Artificial combing is enabled by using the <code>-c</code> option. This is however enabled only in the ideal filtering mode.</p></li>
+<li><p>You can add a certain volume gain by using the <code>-k</code> option. However, note that this is not in dB, but it is amplitude scaling in the time domain.</p></li>
+<li>
+<p>Let us look at a composite command using all of these arguments.</p>
+
+<p><code>$ ./proc.py -i records/lab1_woac.wav -c -v -g 10 -f b</code>, where we process the audio using the input file from the given path, with artificial combing, verbose output, gain as 10, and Butterworth filter.</p>
+</li>
 </ul>
 
 <h2>
 <a id="user-content-brief-description" class="anchor" href="#brief-description" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Brief Description</h2>
 
 <ul>
-<li>Human voice signals have a frequency range of 300 Hz to 3.4 kHz. To reduce the bandwidth further [to curtail the noise signals], we use a bandwidth of about 5 Hz to 2000 Hz. </li>
-<li>There are options to use an ideal filter, butterworth and artificial combing.
+<li><p>Human voice signals have a frequency range of 300 Hz to 3.4 kHz. To reduce the bandwidth further [to curtail the noise signals], we use a bandwidth of about 5 Hz to 2000 Hz. </p></li>
+<li>
+<p>There are options to use an ideal filter, butterworth and artificial combing.</p>
 
 <ul>
-<li>Ideal Filter: To analyse the frequency response, and objectively keep/remove certain frequency components.</li>
-<li>Butterworth filter: To implement a practical realization of the above ideal filter.</li>
-<li>Artificial Combing: It was observed that the noise signal had several high power harmonics in the low frequency range even after applying the ideal filter. Thus, to eliminate them, a naive thresholding was applied, which enabled our signal to get enhanced.</li>
+<li><p>Ideal Filter: To analyse the frequency response, and objectively keep/remove certain frequency components.</p></li>
+<li><p>Butterworth filter: To implement a practical realization of the above ideal filter.</p></li>
+<li><p>Artificial Combing: It was observed that the noise signal had several high power harmonics in the low frequency range even after applying the ideal filter. Thus, to eliminate them, a naive thresholding was applied, which enabled our signal to get enhanced.</p></li>
 </ul>
 </li>
 </ul>
