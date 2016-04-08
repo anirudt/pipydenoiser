@@ -13,6 +13,9 @@ Audio Input to the Raspberry Pi, or in clips with low SNR and high amplitude low
 * Butterworth bandpass filter to reduce background noise
 * Artificial Combing to reduce high power harmonics
 
+## Process Flow
+![Process Flow](flow.png)
+
 ## Tool Usage
 * To find out how to use the tool, use
   ```$ ./proc.py -h ``` for help instructions
