@@ -33,7 +33,7 @@ def load_ideal_filter(opt, N, Fs):
         w_hc = 300*N/Fs*1.0
     if opt == '2':
         # BROADER LPF
-        w_lc = 5*N/Fs*1.0
+        w_lc = 300*N/Fs*1.0
         w_hc = 2000*N/Fs*1.0
     if opt == '3':
         # ALL PASS FILTER
@@ -218,7 +218,7 @@ def capture_bkgnd(opts):
     real_y1 = np.array([y1[i].real for i in range(len(y1))], dtype=np.int16)
     real_y1 = vol_add(real_y1, gain)
 
-    print "SNR is ", get_SNR(freq_resp, Y)
+    #print "SNR is ", get_SNR(freq_resp, Y)
 
     # NORMAL OUTPUT
     real_y = np.array([y[i].real for i in range(len(y))], dtype=np.int16)
