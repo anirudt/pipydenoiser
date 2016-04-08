@@ -27,4 +27,4 @@ Audio Input to the Raspberry Pi, or in clips with low SNR and high amplitude low
 * There are options to use an ideal filter, butterworth and artificial combing.
   * Ideal Filter: To analyse the frequency response, and objectively keep/remove certain frequency components.
   * Butterworth filter: To implement a practical realization of the above ideal filter.
-  * Artificial Combing: It was observed that the noise signal had several high power harmonics in the low frequency range. Thus, to eliminate them, a naive thresholding was applied, which enabled our signal to get enhanced.
+  * Artificial Combing: It was observed that the noise signal had several high power harmonics in the low frequency range even after applying the ideal filter. Thus, to eliminate them, a naive thresholding was applied, which enabled our signal to get enhanced.
