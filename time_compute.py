@@ -2,16 +2,17 @@
 import os, time
 import proc
 
+for i in range(3, 10):
+    os.system('rec records/time'+str(i)+'.wav trim 0 0:'+str(i))
+
 time_taken_ideal = []
 for i in range(30):
     st = time.time()
-    os.system('rec records/time'+str(i)+'.wav trim 0 0:'+str(i))
     os.system('./proc.py -i records/time'+str(i)+'.wav -q')
 
 time_taken_butter = []
 for i in range(30):
     st = time.time()
-    os.system('rec records/time'+str(i)+'.wav trim 0 0:'+str(i))
     os.system('./proc.py -i records/time'+str(i)+'.wav -q -f b')
     time_taken_butter.append(time.time() - st)
 
