@@ -18,7 +18,8 @@ def parseCmd():
     p.add_option('-i', '--input', dest='inp', default = '', help='File input')
     p.add_option('-o', '--output', dest='out', default = '', help='File output')
     p.add_option('-f', '--filter', dest='fil', default = '', help='Filter choice: b - butterworth')
-    p.add_option('-c', '--comb', dest='com', action='store_true', default = False, help='Option for artificial combing, mainly for ButterWorth option')
+    p.add_option('-c', '--comb', dest='com', action='store_true', default = False, help='Option for artificial combing, mainly for ButterWorth option, in recluse now')
+    p.add_option('-g', '--gain', dest='k', default = 0, help='Volume Gain to be added')
     (opts, args) = p.parse_args()
     return opts
 
@@ -67,17 +68,11 @@ def butter_bandpass_filter(data, lowcut, highcut, fs, opts, order=3):
     w, h = signal.freqz(b, a)
     Y = np.fft.fftshift(np.fft.fft(y))
     freq_axis = (np.arange(-fs/2,fs/2,fs*1.0/len(data)))
-    plt.plot(freq_axis, abs(Y))
-    plt.show()
     plt.plot(w, 20 * np.log10(abs(h)))
     plt.show()
-
-    if opts.com:
-        Y = combing(data, fs, Y)
-        y = np.fft.ifftshift(np.fft.ifft(Y))
-        return y
-    else:
-        return y
+    plt.plot(freq_axis, abs(Y))
+    plt.show()
+    return y
 
 def stable_filter_finder(Fs):
     """
@@ -178,8 +173,8 @@ def combing(X, Fs, H):
     avg = np.mean(abs(X))
     alpha = 5
     thresh = alpha*avg
-    print thresh
-    H = [H[i] if abs(X[i])<thresh else 0 for i in range(len(H))]
+    print thresh, np.max(abs(X))
+    H = np.array([H[i] if abs(X[i])<thresh else 0 for i in range(len(H))])
     return H
 
 
@@ -192,14 +187,22 @@ def capture_bkgnd(opts):
     bkgnd = np.mean(bkgnd, axis=1, dtype=np.int16)
     t = range(len(bkgnd))
 
+    if opts.k > 0:
+        gain = int(opts.k)
+    else:
+        # Default gain value
+        gain = 5
+
+    print "Gain", gain
+
     a = get_params(opts)
     Fs = a[-1]
 
     if opts.fil == 'b':
         sig = np.array(butter_bandpass_filter(bkgnd, 10, 2000, sample_rate, opts, 3), dtype=np.int16)
-        sig = vol_add(sig, 5)
-        graphify_plot(t, sig, "Time axis", \
-            "amplitude", "Butterworth filtered voice", "but_voice")
+        sig = vol_add(sig, gain)
+        graphify_plot(t, sig.real, "Time axis", \
+                "amplitude", "Butterworth filtered voice", "but_voice")
         scipy.io.wavfile.write('records/butterworth.wav', sample_rate, sig.real)
         return
 
@@ -213,33 +216,33 @@ def capture_bkgnd(opts):
 
     # COMBED OUTPUTs
     real_y1 = np.array([y1[i].real for i in range(len(y1))], dtype=np.int16)
-    real_y1 = vol_add(real_y1, 5)
+    real_y1 = vol_add(real_y1, gain)
 
     print "SNR is ", get_SNR(freq_resp, Y)
 
     # NORMAL OUTPUT
     real_y = np.array([y[i].real for i in range(len(y))], dtype=np.int16)
-    data_up = vol_add(real_y, 5)
+    data_up = vol_add(real_y, gain)
 
     # Getting requisite plots.
     if opts.ve:
         graphify_plot(freq_axis, np.abs(freq_resp), "frequency axis", \
-            "amplitude", "Voice Freq Plot", "voice")
+                "amplitude", "Voice Freq Plot", "voice")
 
         graphify_plot(freq_axis, np.abs(Y), "frequency axis", \
-            "amplitude", "Filtered Voice Freq Plot", "filt_voice_freq")
+                "amplitude", "Filtered Voice Freq Plot", "filt_voice_freq")
         graphify_plot(freq_axis, np.abs(Y1), "frequency axis", \
-            "amplitude", "Filtered Voice Freq Plot Combed", "comb_filt_voice_freq")
+                "amplitude", "Filtered Voice Freq Plot Combed", "comb_filt_voice_freq")
         graphify_plot(t, real_y1, "Time axis", \
-            "amplitude", "Filtered Voice Time Plot Combed", "comb_filt_voice")
+                "amplitude", "Filtered Voice Time Plot Combed", "comb_filt_voice")
         graphify_plot(t, real_y, "Time axis", \
-            "amplitude", "Filtered Voice Time Plot", "filt_voice")
+                "amplitude", "Filtered Voice Time Plot", "filt_voice")
         graphify_plot(t, data_up, "Time axis", \
-            "amplitude", "Filtered Voice Time Plot", "filt_voice_high")
+                "amplitude", "Filtered Voice Time Plot", "filt_voice_high")
         graphify_plot(t, bkgnd, "Time axis", \
-            "amplitude", "Original Voice Time Plot", "my_voice")
+                "amplitude", "Original Voice Time Plot", "my_voice")
 
-    # Writing the filtered output to a file
+        # Writing the filtered output to a file
     if opts.out:
         scipy.io.wavfile.write(out, sample_rate, real_y)
         scipy.io.wavfile.write('high'+out, sample_rate, data_up)
