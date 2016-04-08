@@ -202,7 +202,8 @@ def capture_bkgnd(opts):
     if opts.fil == 'b':
         sig = np.array(butter_bandpass_filter(bkgnd, 10, 2000, sample_rate, opts, 3), dtype=np.int16)
         sig = vol_add(sig, gain)
-        graphify_plot(t, sig.real, "Time axis", \
+        if opts.ve:
+            graphify_plot(t, sig.real, "Time axis", \
                 "amplitude", "Butterworth filtered voice", "but_voice")
         scipy.io.wavfile.write('records/butterworth.wav', sample_rate, sig.real)
         return
